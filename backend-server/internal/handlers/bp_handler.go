@@ -100,13 +100,10 @@ func (bh *bpHandler) GetContent(c *gin.Context) {
 	w.WriteHeader(resp.StatusCode)
 
 	// レスポンスボディをコピー
-	bodyReader := resp.GetBodyReader()
-	if bodyReader != nil {
-		_, err = io.Copy(w, bodyReader)
-		if err != nil {
-			http.Error(w, "Failed to copy response body", http.StatusInternalServerError)
-			return
-		}
+	_, err = io.Copy(w, resp.GetBodyReader())
+	if err != nil {
+		http.Error(w, "Failed to copy response body", http.StatusInternalServerError)
+		return
 	}
 }
 
@@ -224,27 +221,16 @@ func (bh *bpHandler) handleCONNECT(c *gin.Context) {
 		resp.Write(tlsConn)
 		return
 	}
-	bodyReader := resp.GetBodyReader()
-	if bodyReader != nil {
-		defer bodyReader.Close()
-	}
+	defer resp.GetBodyReader().(io.ReadCloser).Close()
 
 	// レスポンスをクライアント（TLS接続）に書き込む
 	// http.Responseを構築してWriteメソッドで書き込む
-	// bodyReaderがnilの場合は空のReadCloserを使用
-	var respBody io.ReadCloser
-	if bodyReader != nil {
-		respBody = bodyReader
-	} else {
-		respBody = io.NopCloser(strings.NewReader(""))
-	}
-
 	httpResp := &http.Response{
 		StatusCode:    resp.StatusCode,
 		ProtoMajor:    1,
 		ProtoMinor:    1,
 		Header:        make(http.Header),
-		Body:          respBody,
+		Body:          io.NopCloser(resp.GetBodyReader()),
 		ContentLength: resp.ContentLength,
 	}
 	// ヘッダーをコピー

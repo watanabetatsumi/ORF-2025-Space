@@ -1,1 +1,0 @@
-{ "error": "missing parameter 'google_gid'" }

@@ -20,8 +20,8 @@ type BpResponse struct {
 	ContentLength int64 `json:"content_length,omitempty"`
 }
 
-// GetBodyReader レスポンスボディをio.ReadCloserとして返す
-func (br *BpResponse) GetBodyReader() io.ReadCloser {
+// GetBodyReader レスポンスボディをio.Readerとして返す
+func (br *BpResponse) GetBodyReader() io.Reader {
 	if len(br.Body) == 0 {
 		return nil
 	}
