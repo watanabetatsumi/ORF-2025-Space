@@ -35,8 +35,8 @@ func main() {
 	repoClient := plugins.NewRedisClient(redisClient)
 
 	// 依存関係の初期化
-	// bpgw := gateway.NewBpGateway(conf.BPGateway.Host, conf.BPGateway.Port, conf.BPGateway.Timeout)
-	bpgw := gateway.NewLocalGateway(conf.BPGateway.Timeout) // ローカルGatewayを使用
+	bpgw := gateway.NewBpGateway(conf.BPGateway.Host, conf.BPGateway.Port, conf.BPGateway.Timeout)
+	// bpgw := gateway.NewLocalGateway(conf.BPGateway.Timeout) // ローカルGatewayを使用
 	bprepo := repository.NewBpRepository(repoClient, conf.Cache.Dir)
 
 	// ============================================
