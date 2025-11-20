@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"log"
+	"net/http"
 
 	"github.com/watanabetatsumi/ORF-2025-Space/backend-server/internal/application/interface/gateway"
 	"github.com/watanabetatsumi/ORF-2025-Space/backend-server/internal/application/interface/repository"
@@ -67,8 +68,17 @@ func (bs *BpService) ProxyRequest(ctx context.Context, breq *model.BpRequest) (*
 	// デフォルトページを読み込む
 	htmlBytes, err := utils.LoadDefaultPage()
 	if err != nil {
-		// デフォルトページの読み込みに失敗した場合はGatewayで直接転送
-		return bs.bpgateway.ProxyRequest(ctx, breq)
+		// デフォルトページの読み込みに失敗した場合は503 Service Unavailableを返す
+		// DTN環境では直接転送は期待できないため、フォールバックとしてエラーを返す
+		log.Printf("[BpService] Failed to load default page: %v", err)
+		body := []byte("503 Service Unavailable: Failed to load default page and direct proxy is unavailable in DTN environment.")
+		return &model.BpResponse{
+			StatusCode:    http.StatusServiceUnavailable,
+			Headers:       make(map[string][]string),
+			Body:          body,
+			ContentType:   "text/plain; charset=utf-8",
+			ContentLength: int64(len(body)),
+		}, nil
 	}
 
 	return &model.BpResponse{

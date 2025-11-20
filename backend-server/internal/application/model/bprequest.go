@@ -203,3 +203,8 @@ func (r *bodyReader) Read(p []byte) (n int, err error) {
 	r.pos += n
 	return n, nil
 }
+
+// Close io.ReadCloserインターフェースを満たすためのダミーメソッド
+func (r *bodyReader) Close() error {
+	return nil
+}

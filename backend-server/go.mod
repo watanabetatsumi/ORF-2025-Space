@@ -5,7 +5,6 @@ go 1.25.1
 require (
 	github.com/gin-gonic/gin v1.11.0
 	github.com/redis/go-redis/v9 v9.16.0
-	github.com/robfig/cron/v3 v3.0.1
 )
 
 require (

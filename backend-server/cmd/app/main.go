@@ -14,6 +14,8 @@ import (
 	"github.com/watanabetatsumi/ORF-2025-Space/backend-server/internal/infrastructure/gateway"
 	"github.com/watanabetatsumi/ORF-2025-Space/backend-server/internal/infrastructure/repository"
 	"github.com/watanabetatsumi/ORF-2025-Space/backend-server/internal/infrastructure/repository/plugins"
+	"github.com/watanabetatsumi/ORF-2025-Space/backend-server/internal/middleware"
+	"github.com/watanabetatsumi/ORF-2025-Space/backend-server/internal/middleware/module"
 	"github.com/watanabetatsumi/ORF-2025-Space/backend-server/internal/scheduler"
 	scheduler_worker "github.com/watanabetatsumi/ORF-2025-Space/backend-server/internal/scheduler/worker"
 )
@@ -38,10 +40,24 @@ func main() {
 	bprepo := repository.NewBpRepository(repoClient, conf.Cache.Dir)
 
 	// ============================================
+	// ミドルウェアの初期化
+	// ============================================
+
+	ssl_bump_app, err := module.NewSSLBumpHandler(conf.Middlware.CertPath, conf.Middlware.KeyPath, conf.Middlware.MaxCacheSize)
+	if err != nil {
+		log.Fatalf("Failed to initialize SSLBumpHandler: %v", err)
+		return
+	}
+	middlwares := middleware.NewMiddlewarePlugins(
+		ssl_bump_app,
+	)
+
+	// ============================================
 	// アプリケーション層の初期化
 	// ============================================
+
 	bpsrv := service.NewBpService(bpgw, bprepo)
-	bpHandler := handlers.NewBpHandler(bpsrv)
+	bpHandler := handlers.NewBpHandler(bpsrv, middlwares)
 
 	// ============================================
 	// HTTPサーバーの設定
