@@ -1,7 +1,7 @@
 # Binaries
 *.exe
-backend-server
-app
+/backend-server
+/app
 *.test
 
 # Temporary files
