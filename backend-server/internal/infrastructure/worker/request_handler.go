@@ -52,6 +52,7 @@ func (rh *RequestHandler) HandleRequest(ctx context.Context, req *model.BpReques
 
 		// エラーが発生しても予約は削除（次回再試行）
 		// return rh._removeReservedRequest(ctx, req, workerID)
+		return nil
 	}
 
 	// 追加: ステータスコードが200以外（特にリダイレクトやエラー）はキャッシュしない
