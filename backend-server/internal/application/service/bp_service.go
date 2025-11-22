@@ -66,10 +66,10 @@ func (bs *BpService) ProxyRequest(ctx context.Context, breq *model.BpRequest) (*
 	placeholderBody, contentType, err := utils.GetPlaceholderContent(breq.URL, bs.defaultDir)
 
 	// 画像または特定のドメインの場合は予約しない
-	// isImage := strings.HasPrefix(contentType, "image/")
+	isImage := strings.HasPrefix(contentType, "image/")
 	isIgnoredDomain := strings.Contains(breq.URL, "firefox.com") || strings.Contains(breq.URL, "mozilla.com")
 
-	if isIgnoredDomain {
+	if isImage || isIgnoredDomain {
 		log.Printf("[BpService] 画像または除外ドメインのリクエストのため予約をスキップします: URL=%s", breq.URL)
 	} else {
 		// キャッシュミス: Worker Poolにリクエストを予約してデフォルトページを返す
