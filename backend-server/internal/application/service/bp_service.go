@@ -5,6 +5,7 @@ import (
 	"log"
 	"net/http"
 	"path/filepath"
+	"strings"
 
 	"github.com/watanabetatsumi/ORF-2025-Space/backend-server/internal/application/interface/gateway"
 	"github.com/watanabetatsumi/ORF-2025-Space/backend-server/internal/application/interface/repository"
@@ -61,18 +62,25 @@ func (bs *BpService) ProxyRequest(ctx context.Context, breq *model.BpRequest) (*
 
 	log.Printf("[BpService] キャッシュミス: URL=%s, リクエストを予約します", breq.URL)
 
-	// キャッシュミス: Worker Poolにリクエストを予約してデフォルトページを返す
-	if bs.bprepository != nil {
-		err := bs.bprepository.ReserveRequest(ctx, breq)
-		if err != nil {
-			log.Printf("[BpService] ReserveRequest エラー: %v", err)
-		} else {
-			log.Printf("[BpService] ReserveRequest 成功: URL=%s", breq.URL)
+	// リクエストの種類に応じたプレースホルダーを取得
+	placeholderBody, contentType, err := utils.GetPlaceholderContent(breq.URL, bs.defaultDir)
+
+	// 画像の場合は予約しない
+	isImage := strings.HasPrefix(contentType, "image/")
+	if isImage {
+		log.Printf("[BpService] 画像リクエストのため予約をスキップします: URL=%s", breq.URL)
+	} else {
+		// キャッシュミス: Worker Poolにリクエストを予約してデフォルトページを返す
+		if bs.bprepository != nil {
+			err := bs.bprepository.ReserveRequest(ctx, breq)
+			if err != nil {
+				log.Printf("[BpService] ReserveRequest エラー: %v", err)
+			} else {
+				log.Printf("[BpService] ReserveRequest 成功: URL=%s", breq.URL)
+			}
 		}
 	}
 
-	// リクエストの種類に応じたプレースホルダーを取得
-	placeholderBody, contentType, err := utils.GetPlaceholderContent(breq.URL, bs.defaultDir)
 	if err == nil && placeholderBody != nil {
 		return &model.BpResponse{
 			StatusCode:    200,
