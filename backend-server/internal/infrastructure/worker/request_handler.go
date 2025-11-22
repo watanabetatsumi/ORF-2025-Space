@@ -51,8 +51,8 @@ func (rh *RequestHandler) HandleRequest(ctx context.Context, req *model.BpReques
 		log.Printf("[Worker %d] リクエストの転送に失敗 (URL: %s): %v", workerID, req.URL, err)
 
 		// エラーが発生しても予約は削除（次回再試行）
-		// return rh._removeReservedRequest(ctx, req, workerID)
-		return nil
+		return rh._removeReservedRequest(ctx, req, workerID)
+		// return nil
 	}
 
 	// 追加: ステータスコードが200以外（特にリダイレクトやエラー）はキャッシュしない
