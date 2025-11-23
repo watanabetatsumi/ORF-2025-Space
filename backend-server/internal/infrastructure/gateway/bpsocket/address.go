@@ -6,11 +6,24 @@ import (
 	"unsafe"
 )
 
-// カーネルモジュールのsockaddr_bp構造体に対応（uint16 family, uint64 node, uint64 service）
+// カーネルモジュールのsockaddr_bp構造体に対応
+// C構造体:
+//
+//	struct sockaddr_bp {
+//	  sa_family_t bp_family;  // uint16
+//	  bp_scheme_t bp_scheme;  // int32 (enum)
+//	  union {
+//	    struct {
+//	      uint32_t node_id;
+//	      uint32_t service_id;
+//	    } ipn;
+//	  } bp_addr;
+//	};
 type SockaddrBP struct {
-	Family  uint16
-	NodeNum uint64
-	SvcNum  uint64
+	Family  uint16 // bp_family (AF_BP = 28)
+	Scheme  int32  // bp_scheme (BP_SCHEME_IPN = 1)
+	NodeNum uint32 // bp_addr.ipn.node_id
+	SvcNum  uint32 // bp_addr.ipn.service_id
 }
 
 func (sa *SockaddrBP) ToBytes() []byte {
@@ -22,8 +35,9 @@ func (sa *SockaddrBP) ToBytes() []byte {
 func NewSockaddrBP(nodeNum, svcNum uint64) *SockaddrBP {
 	return &SockaddrBP{
 		Family:  AF_BP,
-		NodeNum: nodeNum,
-		SvcNum:  svcNum,
+		Scheme:  BP_SCHEME_IPN,
+		NodeNum: uint32(nodeNum),
+		SvcNum:  uint32(svcNum),
 	}
 }
 
